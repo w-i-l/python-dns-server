@@ -1,0 +1,64 @@
+# Python specific
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE specific
+.vscode/
+.idea/
+
+# Compiled files
+*.pyd
+*.pyc
+*.pyo
+*.pyz
+*.pyw
+*.pyz/
+*.pyw/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+*.db-journal
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Miscellaneous
+*.bak
+*.swp
+*.tmp
+*.tmp.*
+*.~lock.*
+*.DS_Store
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pyz/
+*.pyw/
+*.exe
+*.dll
+*.so
+*.dylib
+*.log
+*.sqlite
+*.db
+*.db-journal
+*.bak
+*.swp
+*.tmp
+*.tmp.*
+*.~lock.*
