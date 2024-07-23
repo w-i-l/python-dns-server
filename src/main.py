@@ -5,7 +5,7 @@ from dns_answear import DNSAnswear
 from dns_enums import DNSHeaderResponseCode, DNSHeaderRecursionDesired
 from datetime import datetime
 
-LOOPBACK_IP = '127.0.0.1'
+DNS_SERVER_IP = '127.0.0.1'
 GOOGLE_DNS_IP = '8.8.8.8'
 DNS_PORT = 53
 
@@ -38,7 +38,7 @@ def main():
         socket.SOCK_DGRAM # UDP
     )
 
-    connection.bind((LOOPBACK_IP, DNS_PORT))
+    connection.bind((DNS_SERVER_IP, DNS_PORT))
 
     DNSAnswear.load_zones()
 
