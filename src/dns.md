@@ -1,159 +1,185 @@
-<h2>O sumarizare</h2>
-<a href="https://www.youtube.com/watch?v=UVR9lhUGAyU">DNS from Fireship</a> - 100 seconds
-<br>
-<a href="https://www.youtube.com/watch?v=27r4Bzuj5NQ">ByteByteGo's video</a>
+<h1>Python DNS Server</h1>
+<h2>An implementation from scratch of a fully functional authoritive and recursive DNS server </h2>
+<img src="https://github.com/user-attachments/assets/c0f2e385-bb81-4be9-8e1b-a44015b1e89a">
 
-<h2>Resurse</h2>
-<a href="https://datatracker.ietf.org/doc/html/rfc1035">Standardul DNS</a> - o lucrare detaliata
-<br>
-<a href="https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/">Cloudflare explanation</a>
-<br>
-<a href="https://www.youtube.com/watch?v=HdrPWGZ3NRo&list=PLBOh8f9FoHHhvO5e5HF_6mYvtZegobYX2">DNS tutorial in Python</a>
 
-<h2>Cum sa folosesti</h2>
-<p>Nu e nevoie de nicio librarie suplimentare, toate librariile folosite fiind preinstalate din Python.</p>
-<p>Se ruleaza <code>python3 dns.py</code> ce porneste serverul de dns local.</p>
-<p>Pentru a face un query se poate folosi <a href="https://www.ibm.com/docs/en/aix/7.1?topic=d-dig-command">dig</a> pentru sistemele Unix:</p>
-<code>dig example.com @127.0.0.1</code>
-<p>sau <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/nslookup">nslookup</a> pentru sistemele Windows:</p>
-<code>nslookup example.com 127.0.0.1</code>
 
 <br>
-<p>Domeniile suportate ca si mocked data sunt <code>example.com</code> si <code>test.com</code>, amandoua avand suport pentru <code>A</code>, <code>SOA</code>, <code>MX</code>, <code>TXT</code>, <code>CNAME</code>.</p>
+<hr>
+<h2>About it</h2>
+<p>This project was made as a demonstration on how a DNS server would work. It doesn't contain a caching mechanism or any advance feature, besides serving responses for basic DNS queries.
 
-<h3>Exemplu de output</h3>
+The server is capable of handling both authoritive and recursive queries. The authoritive queries are handled by the server itself, while the recursive queries are forwarded to a Google DNS server (8.8.8.8) and the response is then forwarded back to the client.
+
+Before moving on, I want to clarify all the capabilities of this server and its limitations.
+</p>
+
+<table>
+    <th>Multithreading</th>
+    <th>Authoritive queries</th>
+    <th>Recursive queries</th>
+    <th>Cache</th>
+    <th>Supported DNS over HTTPS</th>
+    <th>Supported DNS over TLS</th>
+    <tr>
+        <td>No</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>No</td>
+        <td>No</td>
+        <td>No</td>
+    </tr>
+</table>
+
+<table>
+    <th>Multiple questions in one query</th>
+    <th>Truncated answer</th>
+    <th>Assignable IP address</th>
+    <th>Tunneling detection</th>
+    <th>Domain name compression</th>
+    <th>Pointer compression</th>
+    <tr>
+        <td>No</td>
+        <td>No</td>
+        <td>Yes</td>
+        <td>No</td>
+        <td>Yes</td>
+        <td>No</td>
+    </tr>
+</table>
+
+<table>
+    <th>Supported record types</th>
+    <th>Supported classes</th>
+    <th>Supported query types</th>
+    <th>Supported response types</th>
+    <th>Supported response codes</th>
+    <tr>
+        <td>
+            <ul>
+                <li>A</li>
+                <li>CNAME</li>
+                <li>MX</li>
+                <li>NS</li>
+                <li>SOA</li>
+                <li>TXT</li>
+             </ul>
+        </td>
+        <td>
+            <ul>
+                <li>IN</li>
+            </ul>
+        </td>
+        <td>
+            <ul>
+                <li>A</li>
+                <li>CNAME</li>
+                <li>MX</li>
+                <li>NS</li>
+                <li>SOA</li>
+                <li>TXT</li>
+            </ul>
+        </td>
+        <td>
+            <ul>
+                <li>A</li>
+                <li>CNAME</li>
+                <li>MX</li>
+                <li>NS</li>
+                <li>SOA</li>
+                <li>TXT</li>
+            </ul>
+        </td>
+        <td>
+            <ul>
+                <li>NAME_ERROR</li>
+                <li>NO_ERROR</li>
+                <li>FORMAT_ERROR</li>
+                <li>SERVER_FAILURE</li>
+                <li>NOT_IMPLEMENTED</li>
+                <li>REFUSED</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
+>**Note**: The following code will contain explanation for a Unix based system. For Windows, the commands might be different, please consider that when running the server.
+
+<br>
+<hr>
+<h2>How to use it</h2>
+<p>By default the server is made to run on port 53, which is the default port for DNS servers. In order to this program tu run, you would need root permissions to run the server. You can use the following command:</p>
 
 ```bash
-    ; <<>> DiG 9.10.6 <<>> example.com @127.0.0.1 txt
-    ;; global options: +cmd
-    ;; Got answer:
-    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 25472
-    ;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 0
-
-    ;; QUESTION SECTION:
-    ;example.com.                   IN      TXT
-
-    ;; ANSWER SECTION:
-    example.com.            3600    IN      TXT     "v=spf1 ip4:123.123.123.123 -all"
-
-    ;; AUTHORITY SECTION:
-    example.com.            3600    IN      SOA     ns1.example.com. admin.example.com. 2024051501 3600 1800 1209600 3600
-
-    ;; Query time: 0 msec
-    ;; SERVER: 127.0.0.1#53(127.0.0.1)
-    ;; WHEN: Mon May 27 12:52:48 EEST 2024
-    ;; MSG SIZE  rcvd: 141
+sudo python3 main.py
 ```
 
-<h2>Detalii implementare</h2>
-<p>Protocolul DNS se bazeaza pe UPD si portul 53. De asemenea acesta are un header specific care determina mai multe prorpietato:</p>
+<p>The server is configured to use the loopback address which should be <code>127.0.0.1</code>. If you want to change the address, you can do so by changing the <code>DNS_SERVER_IP</code> variable in the <code>main.py</code> file before running the command from above.</p>
 
-```
-                               1  1  1  1  1  1
- 0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
-+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
-+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+<p>The server records are kept in the <code>zones</code> folder. These are not formatted as a normal DNS zone file, but as a JSON file, for more flexibility and ease of use. The server will load all the records from the <code>zones</code> folder and will use them to respond to queries. If you want to add a new record, you can do so by adding a new JSON file in the <code>zones</code> folder. The JSON file should respect the same format use in the examples provided.</p>
+
+<p>For adding a new zone file for a new website called <code>mySite.com</code>, you can create a new JSON file called <code>mySite.com.zone</code> in the <code>zones</code> folder with the following content:</p>
+
+```json
+{
+    "name": "mySite.com",
+    "ttl": 3600,
+    "soa": {
+        "name": "@",
+        "ttl": 3600,
+        "minimum": 3600,
+        "refresh": 3600,
+        "retry": 1800,
+        "expire": 1209600,
+        "serial": 2024051501,
+        "mname": "ns1.mySite.com.",
+        "rname": "admin.mySite.com."
+    }       
+}
 ```
 
-<p>Flagurile reprezinta si pot avea urmatoarele valori:</p>
+>**Note**: The server will read those files only on starting the application. If you want to add a new record, you would need to restart the server.
+
+<p>For testing the server, you can use the <a href="https://linux.die.net/man/1/dig">dig</a> command. The <code>dig</code> command is a DNS lookup utility that can be used to query the DNS server. You can use the following command to query the server:</p>
+
+```bash
+dig example.com @127.0.0.1 txt
+```
+
+<p>If you want to query the server for a recursive query, jsut try with a domain that is not in the <code>zones</code> folder. The server will forward the query to the Google DNS server and will return the response to you.</p>
+
+<br>
+<hr>
+<h2>How it works</h2>
+<p>The server tries to lookup for the query in the <code>zones</code> folder. If the query is found, the server will respond with the records found in the JSON file. If the query is not found, the server will forward the query to the Google DNS server and will return the response to the client.</p>
+
+<p>The process is split across multiple classes, each with its own responsibility. The <code>main.py</code> file is the entry point of the application. It will start the server and will listen for incoming requests. The <code>dns_question.py</code> file contains the <code>DNSQuestion</code> class which is used to parse the incoming query. The <code>dns_answear.py</code> file contains the <code>DNSAnswear</code> class which is used to create the response for the query.</p>
+
+<br>
+<hr>
+<h2>Tech specs</h2>
+
+<p>For creating and handle the DNS fields I created the <code>dns_enums.py</code> file which contains all the supported fields for the DNS protocol.</p>
+
+<p>The <code>dns_errors.py</code> file contains the Python errors that can be raised by the server which are further translated into DNS response codes.</p>
+
+<p>All the functions have been documented so that you can understand what each function does and how it works. The code is also commented so that you can understand the logic behind each function.</p>
+
+<br>
+<hr>
+<h2>Brief explanation</h2>
+
 <ul>
-    <li>QR - Query/Response</li>
-    <li>Opcode - Tipul de query</li>
-    <li>AA - Authoritative Answer - specifica daca serverul detine autoritate asupra informatiei oferite</li>
-    <li>TC - Truncated</li>
-    <li>RD - Recursion Desired - daca dorim sa parcurgem mai multe servere pentru a primi un raspuns</li>
-    <li>RA - Recursion Available - daca serverul poate parcurge si alte servere</li>
-    <li>Z - Zero - reserved for future use</li>
-    <li>RCODE - Response Code - daca a aparut vreo eroare se va specifica aici codul erorii</li>
+   <li><a href="https://www.youtube.com/watch?v=UVR9lhUGAyU">DNS from Fireship</a></li>
+    <li><a href="https://www.youtube.com/watch?v=27r4Bzuj5NQ">ByteByteGo's video</a></li>
 </ul>
-<p>In fisierul <code>dns_enums.py</code> se gasesc mai multe explicatii pentru fiecare flag, dar si toate tipurile suportate de server.</p>
 
-<p>Pentru raspunsul oferit de server, va trebui sa encodam informatia in functie de tipul de query ales.(A, MX, TXT, ...)</p>
+<br>
+<hr>
+<h2>Further reading</h2>
 
-<h2>Cum functioneaza</h2>
-
-<p>Vom explica ce se intampla de fapt in functia main din codul serverului, facand abstractie de implementarea parserului de DNS:</p>
-
-```python
-LOOPBACK_IP = '127.0.0.1'
-GOOGLE_DNS_IP = '8.8.8.8'
-DNS_PORT = 53
-```
-
-<p>Setam ip pe care vom lucra - localhost, ip-ul serverului Googgle, si portul DNS - 53.</p>
-
-```python
-def redirect_to_google(query: bytes) -> tuple[bytes, DNSHeaderResponseCode]:
-    '''
-    Redirects the query to google and returns the response data and response code
-    '''
-
-    google_connection = socket.socket(
-        socket.AF_INET, # IPv4 
-        socket.SOCK_DGRAM # UDP
-    )
-
-    # send the original query to google
-    google_connection.sendto(query, (GOOGLE_DNS_IP, DNS_PORT))
-    
-    google_data, _ = google_connection.recvfrom(1024)
-    google_connection.close()
-
-    # get the response code from the google response
-    dns_header = DNSHeader(google_data)
-    response_code = dns_header.flags.rcode
-
-    return google_data, response_code
-```
-
-<p>Functia <code>redirect_to_gogle</code> accepta ca si argument bytes trimisi catre serverul nostru si se ocupa cu redirectionarea requestului catre serverul Goggle, returnand raspunsul oferit de server.</p>
-
-```python
-    DNSAnswear.load_zones()
-```
-<p>Incarcarea in memorie a tuturor fisierelor <code>.zone</code> ce represinta domeniile pe care le avem in subordine.</p>
-
-<p>Functia main este mai mare asa ca o sa o impartim in mai multe parti:</p>
-
-```python
-    connection = socket.socket(
-        socket.AF_INET, # IPv4 
-        socket.SOCK_DGRAM # UDP
-    )
-
-    connection.bind((LOOPBACK_IP, DNS_PORT))
-```
-<p>Deschiderea unei conexiuni pe care ascultam cererile si le procesam secvential.</p>
-
-```python
-    print("--------------------")
-    data, address = connection.recvfrom(1024) # buffer size
-
-    curent_date = datetime.strftime(datetime.now(), "%d-%m-%Y %H:%M:%S")
-    packet = DNSPacket(data)
-    print(f"[{curent_date}] Received request for \"{packet.question.domain}\"")
-```
-
-<p>Primirea datelor de la client si afisarea formatata pentru log-ul serverului</p>
-
-
-```python
-    if response_code == DNSHeaderResponseCode.NAME_ERROR and packet.header.flags.rd == DNSHeaderRecursionDesired.RECURSION:
-        print(f"[{curent_date}] Redirecting to Google")
-
-        response_data, response_code = redirect_to_google(data)
-        # send the response back to the client
-        connection.sendto(response_data, address)
-
-        print(f"[{curent_date}] Responded from Google with {response_code.name} for \"{packet.question.domain}\"")
-        continue
-```
-<p>Daca nu putem rezolva domeniul query-ului si se doreste recursie, trimitem cererea serverului Google, primim raspunsul si il redirectionam catre userul original.</p>
-
-```python
-    print(f"[{curent_date}] Responded with {response_code.name} for \"{packet.question.domain}\"")
-    connection.sendto(response_data, address)
-```
-
-<p>Afisarea logului pentru server si trimiterea mesajului catre utilizator.</p>
+<ul>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc1035">DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION</a></li>
+<li><a href="https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/">Cloudflare explanation</a></li>
+<li><a href="https://www.youtube.com/watch?v=HdrPWGZ3NRo&list=PLBOh8f9FoHHhvO5e5HF_6mYvtZegobYX2">DNS tutorial in Python</a></li>
+</ul>
